@@ -12,7 +12,7 @@
 Читает файл со списком доменов (по одному в строке) и формирует JSON для Low-Level Discovery (LLD).
 
 **Пример файла:** 
-`/etc/zabbix/scripts/domains.txt:`
+`/etc/zabbix/scripts/domains.txt`
 ~~~
 example.com
 mydomain.ru
