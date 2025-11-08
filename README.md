@@ -5,6 +5,7 @@
 ### Требования
 * Python (3.11)
 * Python-whois (0.9.5)
+* Zabbix v.5 / v.6
 
 ### Скрипты
 1. `domain_discovery.py`
