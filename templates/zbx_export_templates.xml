@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>6.2</version>
+    <date>2025-08-23T19:47:26Z</date>
+    <template_groups>
+        <template_group>
+            <uuid>a571c0d144b14fd4a87a9d9b2aa9fcd6</uuid>
+            <name>Templates/Applications</name>
+        </template_group>
+    </template_groups>
+    <templates>
+        <template>
+            <uuid>4ef09fabd45a446081d26d2b8aa7c515</uuid>
+            <template>Template Domain Monitoring with LLD</template>
+            <name>Domain Monitoring with LLD</name>
+            <description>Check WHOIS domain and SSL expiry</description>
+            <groups>
+                <group>
+                    <name>Templates/Applications</name>
+                </group>
+            </groups>
+            <discovery_rules>
+                <discovery_rule>
+                    <uuid>7c59c4fe873c40968935f4f6b17924f7</uuid>
+                    <name>Domains LLD Discovery</name>
+                    <key>domain.discovery[{$DOMAINS_FILE_PATH}]</key>
+                    <delay>5m</delay>
+                    <lifetime>1d</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>71ade134c54f494a91197d4f916c1022</uuid>
+                            <name>Domain check: {#DOMAIN}</name>
+                            <key>domain.check[{#DOMAIN}]</key>
+                            <delay>5m</delay>
+                            <history>1d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>JSON domain_days и ssl_days for Master item</description>
+                            <tags>
+                                <tag>
+                                    <tag>JSON</tag>
+                                    <value>Domain</value>
+                                </tag>
+                            </tags>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>798aeebfaf2e4c3fa65855eb5362cf62</uuid>
+                                    <expression>nodata(/Template Domain Monitoring with LLD/domain.check[{#DOMAIN}],1d)=1</expression>
+                                    <name>Нет данных для {#DOMAIN} за 1 день</name>
+                                    <status>DISABLED</status>
+                                    <priority>WARNING</priority>
+                                    <description>No data received in 1 day</description>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>48c4105324ba4ef5bce8f704a0cf1410</uuid>
+                            <name>Domain expiry: {#DOMAIN} (days)</name>
+                            <type>DEPENDENT</type>
+                            <key>domain.expiry[{#DOMAIN}]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <trends>30d</trends>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.domain_days</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>domain.check[{#DOMAIN}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Expiry</tag>
+                                    <value>Domain</value>
+                                </tag>
+                            </tags>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>a682c370b3484d8389c41cdaf533e834</uuid>
+                                    <expression>last(/Template Domain Monitoring with LLD/domain.expiry[{#DOMAIN}])=0</expression>
+                                    <name>Проверка WHOIS для {#DOMAIN} вернула код 0</name>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <uuid>fc218fbf62254f7fa84719bfd9aed4a7</uuid>
+                                    <expression>last(/Template Domain Monitoring with LLD/domain.expiry[{#DOMAIN}])&lt;{$EXPIRY_DAYS_7}</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>last(/Template Domain Monitoring with LLD/domain.expiry[{#DOMAIN}])&gt;{$EXPIRY_DAYS_7}</recovery_expression>
+                                    <name>Срок действия домена {#DOMAIN} истекает через {$EXPIRY_DAYS_7} дней</name>
+                                    <priority>HIGH</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <uuid>5671b343109e4058b11c1529a5394b6e</uuid>
+                                    <expression>last(/Template Domain Monitoring with LLD/domain.expiry[{#DOMAIN}])&lt;{$EXPIRY_DAYS_30}</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>last(/Template Domain Monitoring with LLD/domain.expiry[{#DOMAIN}])&gt;{$EXPIRY_DAYS_30}</recovery_expression>
+                                    <name>Срок действия домена {#DOMAIN} истекает через {$EXPIRY_DAYS_30} дней</name>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>ec0f108cf117415e890d91d49480325a</uuid>
+                            <name>SSL expiry: {#DOMAIN} (days)</name>
+                            <type>DEPENDENT</type>
+                            <key>ssl.expiry[{#DOMAIN}]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <trends>30d</trends>
+                            <status>DISABLED</status>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.ssl_days</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>domain.check[{#DOMAIN}]</key>
+                            </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>Expiry</tag>
+                                    <value>SSL</value>
+                                </tag>
+                            </tags>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>763adeea236b465eb47f6c5708e16f63</uuid>
+                                    <expression>last(/Template Domain Monitoring with LLD/ssl.expiry[{#DOMAIN}])=0</expression>
+                                    <name>Проверка SSL для {#DOMAIN} вернула код 0</name>
+                                    <status>DISABLED</status>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <uuid>a40afaff2997461b8d0e28923642b256</uuid>
+                                    <expression>last(/Template Domain Monitoring with LLD/ssl.expiry[{#DOMAIN}])&lt;{$EXPIRY_DAYS_7}</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>last(/Template Domain Monitoring with LLD/ssl.expiry[{#DOMAIN}])&gt;{$EXPIRY_DAYS_7}</recovery_expression>
+                                    <name>Сертификат (ssl) для {#DOMAIN} истекает через {$EXPIRY_DAYS_7} дней</name>
+                                    <status>DISABLED</status>
+                                    <priority>HIGH</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <uuid>27a5300114494a3197e9ed04d9282623</uuid>
+                                    <expression>last(/Template Domain Monitoring with LLD/ssl.expiry[{#DOMAIN}])&lt;{$EXPIRY_DAYS_30}</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>last(/Template Domain Monitoring with LLD/ssl.expiry[{#DOMAIN}])&gt;{$EXPIRY_DAYS_30}</recovery_expression>
+                                    <name>Сертификат (ssl) для {#DOMAIN} истекает через {$EXPIRY_DAYS_30} дней</name>
+                                    <status>DISABLED</status>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+            </discovery_rules>
+            <tags>
+                <tag>
+                    <tag>domains</tag>
+                    <value>monitoring</value>
+                </tag>
+            </tags>
+            <macros>
+                <macro>
+                    <macro>{$DOMAINS_FILE_PATH}</macro>
+                    <value>/opt/domain_check/domains.txt</value>
+                    <description>путь до списка доменов</description>
+                </macro>
+                <macro>
+                    <macro>{$EXPIRY_DAYS_7}</macro>
+                    <value>7</value>
+                    <description>срок до истечения 7d</description>
+                </macro>
+                <macro>
+                    <macro>{$EXPIRY_DAYS_30}</macro>
+                    <value>30</value>
+                    <description>срок до истечения 30d</description>
+                </macro>
+            </macros>
+        </template>
+    </templates>
+</zabbix_export>

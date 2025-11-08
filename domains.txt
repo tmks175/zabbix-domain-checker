@@ -1,0 +1,4 @@
+example.com
+mydomain.ru
+google.com
+my.example.com

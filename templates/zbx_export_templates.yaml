@@ -1,0 +1,151 @@
+zabbix_export:
+  version: '6.2'
+  date: '2025-08-23T19:47:30Z'
+  template_groups:
+    -
+      uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    -
+      uuid: 4ef09fabd45a446081d26d2b8aa7c515
+      template: 'Template Domain Monitoring with LLD'
+      name: 'Domain Monitoring with LLD'
+      description: 'Check WHOIS domain and SSL expiry'
+      groups:
+        -
+          name: Templates/Applications
+      discovery_rules:
+        -
+          uuid: 7c59c4fe873c40968935f4f6b17924f7
+          name: 'Domains LLD Discovery'
+          key: 'domain.discovery[{$DOMAINS_FILE_PATH}]'
+          delay: 5m
+          lifetime: 1d
+          item_prototypes:
+            -
+              uuid: 71ade134c54f494a91197d4f916c1022
+              name: 'Domain check: {#DOMAIN}'
+              key: 'domain.check[{#DOMAIN}]'
+              delay: 5m
+              history: 1d
+              trends: '0'
+              value_type: TEXT
+              description: 'JSON domain_days и ssl_days for Master item'
+              tags:
+                -
+                  tag: JSON
+                  value: Domain
+              trigger_prototypes:
+                -
+                  uuid: 798aeebfaf2e4c3fa65855eb5362cf62
+                  expression: 'nodata(/Template Domain Monitoring with LLD/domain.check[{#DOMAIN}],1d)=1'
+                  name: 'Нет данных для {#DOMAIN} за 1 день'
+                  status: DISABLED
+                  priority: WARNING
+                  description: 'No data received in 1 day'
+                  manual_close: 'YES'
+            -
+              uuid: 48c4105324ba4ef5bce8f704a0cf1410
+              name: 'Domain expiry: {#DOMAIN} (days)'
+              type: DEPENDENT
+              key: 'domain.expiry[{#DOMAIN}]'
+              delay: '0'
+              history: 7d
+              trends: 30d
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.domain_days
+              master_item:
+                key: 'domain.check[{#DOMAIN}]'
+              tags:
+                -
+                  tag: Expiry
+                  value: Domain
+              trigger_prototypes:
+                -
+                  uuid: a682c370b3484d8389c41cdaf533e834
+                  expression: 'last(/Template Domain Monitoring with LLD/domain.expiry[{#DOMAIN}])=0'
+                  name: 'Проверка WHOIS для {#DOMAIN} вернула код 0'
+                  priority: WARNING
+                  manual_close: 'YES'
+                -
+                  uuid: fc218fbf62254f7fa84719bfd9aed4a7
+                  expression: 'last(/Template Domain Monitoring with LLD/domain.expiry[{#DOMAIN}])<{$EXPIRY_DAYS_7}'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Domain Monitoring with LLD/domain.expiry[{#DOMAIN}])>{$EXPIRY_DAYS_7}'
+                  name: 'Срок действия домена {#DOMAIN} истекает через {$EXPIRY_DAYS_7} дней'
+                  priority: HIGH
+                  manual_close: 'YES'
+                -
+                  uuid: 5671b343109e4058b11c1529a5394b6e
+                  expression: 'last(/Template Domain Monitoring with LLD/domain.expiry[{#DOMAIN}])<{$EXPIRY_DAYS_30}'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Domain Monitoring with LLD/domain.expiry[{#DOMAIN}])>{$EXPIRY_DAYS_30}'
+                  name: 'Срок действия домена {#DOMAIN} истекает через {$EXPIRY_DAYS_30} дней'
+                  priority: WARNING
+                  manual_close: 'YES'
+            -
+              uuid: ec0f108cf117415e890d91d49480325a
+              name: 'SSL expiry: {#DOMAIN} (days)'
+              type: DEPENDENT
+              key: 'ssl.expiry[{#DOMAIN}]'
+              delay: '0'
+              history: 7d
+              trends: 30d
+              status: DISABLED
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.ssl_days
+              master_item:
+                key: 'domain.check[{#DOMAIN}]'
+              tags:
+                -
+                  tag: Expiry
+                  value: SSL
+              trigger_prototypes:
+                -
+                  uuid: 763adeea236b465eb47f6c5708e16f63
+                  expression: 'last(/Template Domain Monitoring with LLD/ssl.expiry[{#DOMAIN}])=0'
+                  name: 'Проверка SSL для {#DOMAIN} вернула код 0'
+                  status: DISABLED
+                  priority: WARNING
+                  manual_close: 'YES'
+                -
+                  uuid: a40afaff2997461b8d0e28923642b256
+                  expression: 'last(/Template Domain Monitoring with LLD/ssl.expiry[{#DOMAIN}])<{$EXPIRY_DAYS_7}'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Domain Monitoring with LLD/ssl.expiry[{#DOMAIN}])>{$EXPIRY_DAYS_7}'
+                  name: 'Сертификат (ssl) для {#DOMAIN} истекает через {$EXPIRY_DAYS_7} дней'
+                  status: DISABLED
+                  priority: HIGH
+                  manual_close: 'YES'
+                -
+                  uuid: 27a5300114494a3197e9ed04d9282623
+                  expression: 'last(/Template Domain Monitoring with LLD/ssl.expiry[{#DOMAIN}])<{$EXPIRY_DAYS_30}'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Domain Monitoring with LLD/ssl.expiry[{#DOMAIN}])>{$EXPIRY_DAYS_30}'
+                  name: 'Сертификат (ssl) для {#DOMAIN} истекает через {$EXPIRY_DAYS_30} дней'
+                  status: DISABLED
+                  priority: WARNING
+                  manual_close: 'YES'
+      tags:
+        -
+          tag: domains
+          value: monitoring
+      macros:
+        -
+          macro: '{$DOMAINS_FILE_PATH}'
+          value: /opt/domain_check/domains.txt
+          description: 'путь до списка доменов'
+        -
+          macro: '{$EXPIRY_DAYS_7}'
+          value: '7'
+          description: 'срок до истечения 7d'
+        -
+          macro: '{$EXPIRY_DAYS_30}'
+          value: '30'
+          description: 'срок до истечения 30d'
