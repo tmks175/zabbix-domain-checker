@@ -46,8 +46,8 @@ my.example.com
 
 1. В конфиг агента: `/etc/zabbix/zabbix_agentd.d/domain.conf` добавить:
 ~~~
-UserParameter=domain.check[*],/opt/domains/venv/bin/python3 /opt/domains/venv/domain_check.py $1
-UserParameter=domain.discovery[*],/opt/domains/venv/bin/python3 /opt/domains/venv/domain_discovery.py $1
+UserParameter=domain.check[*],/opt/domains/venv/bin/python3 /opt/domains/venv/domain_check.py "$1"
+UserParameter=domain.discovery[*],/opt/domains/venv/bin/python3 /opt/domains/venv/domain_discovery.py "$1"
 ~~~
 2. Перезапустить агент: `systemctl restart zabbix-agent`
 
@@ -105,3 +105,4 @@ UserParameter=domain.discovery[*],/opt/domains/venv/bin/python3 /opt/domains/ven
 1. После настройки и "обнаружения" элементов (в соответствии со списком доменов), рекомендуется проверить активные триггеры и при необходимости отключить те, что связаны с SSL, если для некоторых доменов/поддоменов сертификаты отсутствуют или не используются. Тоже самое касается и поддоменов - например, у поддомена будет такой же срок истечения, что и у основного домена (т.е. нет смысла вести по нему статистику).
 2. Если при проверке возникла ошибка (не удалось получить WHOIS или др.), скрипт возвращает код 0. Можно настроить триггер на значение `0`, а также, дополнительно, использовать `nodata()`, чтобы понимать, когда данные не приходят совсем (например, агент не отвечает или проблемы с сетью).
 3. Для Zabbix v.6 реализован шаблон (директория templates), который можно импортировать/настроить под свои потребности или использовать в качестве примера.
+4. Timeout в конфигурации Zabbix-agent'a должен быть больше 7s (оптимально 15-20).
